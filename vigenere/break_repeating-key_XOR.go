@@ -1,4 +1,4 @@
-package one
+package vigenere
 
 import (
 	// keep hex out of here and in tests
