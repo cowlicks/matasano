@@ -2,7 +2,6 @@ package padding
 
 import (
     "testing"
-    "fmt"
 )
 
 func TestPad(t * testing.T) {
@@ -38,7 +37,16 @@ func TestPad(t * testing.T) {
     }
     for i := 50; i < 52; i++ {
         if out[i] != uint8(6) {
-            fmt.Println(out[i])
+            t.Fatal()
+        }
+    }
+
+    // matasano test
+    in := []byte("YELLOW SUBMARINE")
+    exp = []byte("YELLOW SUBMARINE\x04\x04\x04\x04")
+    out, err = Pad(20, in)
+    for i, v:= range out {
+        if v != exp[i] {
             t.Fatal()
         }
     }
