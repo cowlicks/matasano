@@ -1,4 +1,4 @@
-package aesecb
+package aesmodes
 
 import (
     "crypto/aes"
