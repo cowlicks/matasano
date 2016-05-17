@@ -86,3 +86,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# This project
+data/
