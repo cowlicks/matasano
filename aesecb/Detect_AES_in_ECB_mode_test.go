@@ -1,4 +1,4 @@
-package one
+package aesecb
 
 import (
     "testing"
@@ -7,7 +7,7 @@ import (
     "bytes"
 )
 func TestDetectECB(t * testing.T) {
-    file_bytes, _ := ioutil.ReadFile("data8.txt")
+    file_bytes, _ := ioutil.ReadFile("../data/data8.txt")
     encoded := bytes.Split(file_bytes, []byte("\n"))
     ciphertexts := make([][]byte, len(encoded))
     for i, e := range encoded {

@@ -1,4 +1,4 @@
-package one
+package aesecb
 
 func DetectECB(blocksize int, ciphertext []byte) bool {
     counter := make(map[string]int)

@@ -1,4 +1,4 @@
-package one
+package aesecb
 
 import (
 //    "crypto/cipher"
@@ -10,7 +10,7 @@ import (
 func TestThis(t * testing.T) {
     key := []byte("YELLOW SUBMARINE")
 
-    file_bytes, _ := ioutil.ReadFile("data7.txt")
+    file_bytes, _ := ioutil.ReadFile("../data/data7.txt")
 
     decodelen := base64.StdEncoding.DecodedLen(len(file_bytes))
     ciphertext := make([]byte, decodelen)
