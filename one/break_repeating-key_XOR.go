@@ -2,6 +2,7 @@ package one
 
 import (
 	// keep hex out of here and in tests
+    "../xor"
 	"errors"
 	"fmt"
 	"sort"
@@ -9,18 +10,6 @@ import (
 
 func P(b interface{}) {
 	fmt.Println(b)
-}
-
-func Xor(a, b []byte) ([]byte, error) {
-	out := make([]byte, len(a))
-	if len(a) != len(b) {
-		return out, errors.New("inputs different length")
-	}
-
-	for i, v := range a {
-		out[i] = v ^ b[i]
-	}
-	return out, nil
 }
 
 func countOnesInByte(a byte) int {
@@ -40,7 +29,7 @@ func HammingDistance(a, b []byte) (int, error) {
 		return 0, errors.New("inputs different length")
 	}
 
-	difs, _ := Xor(a, b)
+	difs, _ := xor.Xor(a, b)
 	for _, v := range difs {
 		out += countOnesInByte(v)
 	}
@@ -184,7 +173,7 @@ func FindXorChar(b []byte) (byte, error) {
 	for _, u := range count.Order {
 		for _, v := range common_chars {
 			x := u ^ v
-			xord := VectorXor([]byte{x}, b)
+			xord := xor.VectorXor([]byte{x}, b)
 			if AllPrintable(xord) && isPrintable(x) {
 				return x, nil
 			}
@@ -205,25 +194,6 @@ func BuildKey(ks int, tblocks [][]byte) ([]byte, error) {
 	return key, nil
 }
 
-func VectorXor(short []byte, long []byte) []byte {
-	ls := len(short)
-	ll := len(long)
-	nshorts := ll / ls
-	if ll%ls != 0 {
-		nshorts += 1
-	}
-	out := make([]byte, ll)
-	for i := 0; i < nshorts; i++ {
-		if ls*(i+1) <= ll {
-			copy(out[ls*i:ls*(i+1)], short)
-		} else {
-			copy(out[ls*i:ll], short[:ll%ls])
-		}
-	}
-	out, _ = Xor(out, long)
-	return out
-}
-
 func makeBlocks(ks int, data []byte) [][]byte {
 	blocks := GetKeySizeBlocks(data, ks)
 	tblocks := TransposeBlocks(blocks)
@@ -239,7 +209,7 @@ func CrackVigenere(data []byte) ([]byte, []byte, error) {
 		blocks := makeBlocks(ks, data)
 		k, err := BuildKey(ks, blocks)
 		if err == nil {
-			return VectorXor(k, data), k, nil
+			return xor.VectorXor(k, data), k, nil
 		}
 	}
 	return output, k, errors.New("couldn't crack it")

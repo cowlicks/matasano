@@ -1,6 +1,7 @@
 package one
 
 import (
+    "../xor"
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
@@ -43,7 +44,7 @@ func TestXor(t *testing.T) {
 	in2, _ := hex.DecodeString("686974207468652062756c6c277320657965")
 	out, _ := hex.DecodeString("746865206b696420646f6e277420706c6179")
 
-	res, err := Xor(in1, in2)
+	res, err := xor.Xor(in1, in2)
 
 	if err != nil {
 		t.Error(err)
@@ -68,15 +69,6 @@ func TestHamming(t *testing.T) {
 		t.Fatal(res, out)
 	}
 }
-
-/*
-func TestKeySizes(t * testing.T) {
-    file_bytes, _ := ioutil.ReadFile("data6.txt")
-    // strip \n
-    file_bytes = bytes.Replace(file_bytes, []byte("\n"), []byte(""), -1)
-    FindKeySize(file_bytes)
-}
-*/
 
 func TestAllPrintable(t *testing.T) {
 	in := []byte("All thesee chars are printabel")
@@ -204,22 +196,22 @@ func TestMyVig(t *testing.T) {
     var plaintext []byte = bytes.Replace(plaintext_n, []byte("\n"), []byte(""), -1)
 
     var key []byte = []byte("Alien ant farm")
-    var ciphertext []byte = VectorXor(key, plaintext)
+    var ciphertext []byte = xor.VectorXor(key, plaintext)
 
 	pt1 := []byte("foobarqux")
 	key1 := []byte("xofoo")
-	ct1 := VectorXor(key1, pt1)
-	res1 := VectorXor(key1, ct1)
+	ct1 := xor.VectorXor(key1, pt1)
+	res1 := xor.VectorXor(key1, ct1)
 	if string(res1) != string(pt1) {
 		t.Fatal()
 	}
 
-	res2 := VectorXor(key, ciphertext)
+	res2 := xor.VectorXor(key, ciphertext)
 	if string(res2) != string(plaintext) {
 		t.Fatal()
 	}
 
-	res3 := VectorXor(key, ciphertext[:len(key)])
+	res3 := xor.VectorXor(key, ciphertext[:len(key)])
 	if !testEq(res3, plaintext[:len(key)]) {
 		t.Fatal()
 	}
@@ -229,7 +221,7 @@ func TestMyVig(t *testing.T) {
 		ct2[i] = plaintext[i]
 		ct2[i] ^= uint8('a')
 	}
-	res4 := VectorXor([]byte{'a'}, ct2)
+	res4 := xor.VectorXor([]byte{'a'}, ct2)
 	if !testEq(res4, plaintext[:20]) {
 		t.Fatal()
 	}
@@ -241,7 +233,7 @@ func TestMyVig(t *testing.T) {
 }
 
 func TestCryptopalskVigenere(t *testing.T) {
-	file_bytes, _ := ioutil.ReadFile("data6.txt")
+	file_bytes, _ := ioutil.ReadFile("../data/data6.txt")
 	file_bytes, err := base64.StdEncoding.DecodeString(string(file_bytes))
 	if err != nil {
 		t.Fatal()
