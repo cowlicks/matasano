@@ -1,13 +1,13 @@
 package aesmodes
 
 import (
-//    "crypto/cipher"
+    "../util"
     "testing"
     "io/ioutil"
     "encoding/base64"
 )
 
-func TestDecryptECB(t * testing.T) {
+func TestECB(t * testing.T) {
     key := []byte("YELLOW SUBMARINE")
 
     file_bytes, _ := ioutil.ReadFile("../data/data7.txt")
@@ -21,8 +21,16 @@ func TestDecryptECB(t * testing.T) {
     if err != nil {
         t.Fatal()
     }
-    exp := "I'm back and I'm ringin' the bell"
-    if string(plaintext[:len(exp)]) != exp {
+    exp := []byte("I'm back and I'm ringin' the bell")
+    if !util.ByteEq(plaintext[:len(exp)], exp) {
+        t.Fatal()
+    }
+
+    new_ciphertext, err := EncryptECB(key, plaintext)
+    if err != nil {
+        t.Fatal()
+    }
+    if !util.ByteEq(new_ciphertext, ciphertext) {
         t.Fatal()
     }
 }
