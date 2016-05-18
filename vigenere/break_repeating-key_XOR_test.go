@@ -2,42 +2,13 @@ package vigenere
 
 import (
     "../xor"
+    "../util"
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"io/ioutil"
 	"testing"
 )
-
-func testEq(a, b []byte) bool {
-
-	if a == nil && b == nil {
-		return true
-	}
-
-	if a == nil || b == nil {
-		return false
-	}
-
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func assert(a, b []byte) {
-	x := testEq(a, b)
-	if !x {
-		panic("assert fail")
-	}
-}
 
 func TestXor(t *testing.T) {
 	in1, _ := hex.DecodeString("1c0111001f010100061a024b53535009181c")
@@ -50,7 +21,7 @@ func TestXor(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !testEq(res, out) {
+	if !util.ByteEq(res, out) {
 		t.Fatal("fail")
 	}
 }
@@ -212,7 +183,7 @@ func TestMyVig(t *testing.T) {
 	}
 
 	res3 := xor.VectorXor(key, ciphertext[:len(key)])
-	if !testEq(res3, plaintext[:len(key)]) {
+	if !util.ByteEq(res3, plaintext[:len(key)]) {
 		t.Fatal()
 	}
 
@@ -222,12 +193,12 @@ func TestMyVig(t *testing.T) {
 		ct2[i] ^= uint8('a')
 	}
 	res4 := xor.VectorXor([]byte{'a'}, ct2)
-	if !testEq(res4, plaintext[:20]) {
+	if !util.ByteEq(res4, plaintext[:20]) {
 		t.Fatal()
 	}
 
 	r, _, _ := CrackVigenere(ciphertext)
-	if !testEq(r, plaintext) {
+	if !util.ByteEq(r, plaintext) {
 		t.Fatal()
 	}
 }

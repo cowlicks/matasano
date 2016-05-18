@@ -4,13 +4,8 @@ import (
 	// keep hex out of here and in tests
     "../xor"
 	"errors"
-	"fmt"
 	"sort"
 )
-
-func P(b interface{}) {
-	fmt.Println(b)
-}
 
 func countOnesInByte(a byte) int {
 	pows := []byte{1, 2, 4, 8, 16, 32, 64, 128}
