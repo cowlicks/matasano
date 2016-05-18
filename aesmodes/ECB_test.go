@@ -7,7 +7,7 @@ import (
     "encoding/base64"
 )
 
-func TestThis(t * testing.T) {
+func TestDecryptECB(t * testing.T) {
     key := []byte("YELLOW SUBMARINE")
 
     file_bytes, _ := ioutil.ReadFile("../data/data7.txt")
@@ -17,7 +17,7 @@ func TestThis(t * testing.T) {
     ctlen, _ := base64.StdEncoding.Decode(ciphertext, file_bytes)
     ciphertext = ciphertext[:ctlen]
 
-    plaintext, err := DecryptAESECB(key, ciphertext)
+    plaintext, err := DecryptECB(key, ciphertext)
     if err != nil {
         t.Fatal()
     }

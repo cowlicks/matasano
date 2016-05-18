@@ -4,7 +4,7 @@ import (
     "crypto/aes"
 )
 
-func DecryptAESECB(key, ciphertext []byte) ([]byte, error) {
+func DecryptECB(key, ciphertext []byte) ([]byte, error) {
     block, err := aes.NewCipher(key)
     if err != nil {
         return []byte(""), err
