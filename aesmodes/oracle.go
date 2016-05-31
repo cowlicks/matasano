@@ -19,7 +19,7 @@ func concat(b ...[]byte) []byte {
     return out
 }
 
-func EncryptionOracle(data []byte) ([]byte, error) {
+func OracleEncryptor(data []byte) ([]byte, error) {
     var ct []byte
     prefix := make([]byte, mrand.Intn(6) + 5)
     sufix := make([]byte, mrand.Intn(6) + 5)
@@ -36,4 +36,11 @@ func EncryptionOracle(data []byte) ([]byte, error) {
         ct, err = EncryptECB(key, padded)
     }
     return ct, err
+}
+
+func OracleDetector(data []byte) string {
+    if DetectECB(16, data) {
+        return "ECB"
+    }
+    return "CBC"
 }
