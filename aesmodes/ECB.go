@@ -1,6 +1,7 @@
 package aesmodes
 
 import (
+    "../padding"
     "crypto/aes"
 )
 
@@ -30,6 +31,7 @@ func DecryptECB(key, ciphertext []byte) ([]byte, error) {
         ctblock := ciphertext[ll:ul]
         block.Decrypt(ptblock, ctblock)
     }
+    plaintext, _ = padding.UnPad(blocksize, plaintext)
     return plaintext, nil
 }
 
@@ -39,6 +41,7 @@ func EncryptECB(key, plaintext []byte) ([]byte, error) {
         return []byte(""), err
     }
     blocksize := block.BlockSize()
+    plaintext, _ = padding.Pad(blocksize, plaintext)
     ptsize := len(plaintext)
 
     nblocks := ptsize/blocksize
