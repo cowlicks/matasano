@@ -1,6 +1,7 @@
 package twelve
 
 import (
+//    "fmt"
     "encoding/base64"
     "../aesmodes"
 )
@@ -41,13 +42,72 @@ func CheckEncryptorECB(kencryptor func([]byte) []byte) bool {
     return true
 }
 
-func MakeDict(bs int) map[string][]byte {
-    out := make(map[string][]byte)
+func MakeDict(bs int) map[string]byte {
+    out := make(map[string]byte)
     for i := 0; i < 256; i++ {
+        b := byte(i)
         block := make([]byte, bs)
-        block[bs - 1] = byte(i)
+        block[bs - 1] = b
         ct := KeyedEncryptor(block)
-        out[string(block[:bs])] = ct[:bs]
+        out[string(ct[:bs])] = b
     }
     return out
 }
+
+func MakeDictWithPad(bs int, pad []byte) map[string]byte {
+    out := make(map[string]byte)
+    padlen := len(pad)
+
+    for i := 0; i < 256; i++ {
+        b := byte(i)
+
+        block := make([]byte, padlen + 1)
+        copy(block[:padlen], pad)
+        block[padlen] = b
+        ct := KeyedEncryptor(block)
+        out[string(ct[:bs])] = b
+    }
+    return out
+}
+
+func MakeCTDict(bs int) map[int][]byte {
+    out := make(map[int][]byte)
+
+    for i := 0; i < bs - 1; i++ {
+        out[i] = KeyedEncryptor(make([]byte, i))
+    }
+    return out
+}
+
+
+func OneShort() byte {
+    bs := FindBlockSize(KeyedEncryptor)
+    dict := MakeDict(bs)
+
+    short := make([]byte, bs - 1)
+    ct := KeyedEncryptor(short)
+    return dict[string(ct[bs:])]
+}
+
+/*
+func All() []byte {
+    bs := FindBlockSize(KeyedEncryptor)
+    ptlen := len(appendme)
+    initct := KeyedEncryptor(make([]byte, 0))
+    initctlen := len(initct)
+
+    out := make([]byte, ptlen)
+    buf := make([]byte, bs)
+
+    for i := 0; i < ptlen; i++ {
+        dict := MakeDictWithPad(bs, buf[:bs - 1])
+        ct := KeyedEncryptor(buf[:bs - 1])
+        res := dict[string(ct[:bs])]
+        out[i] = res
+        buf[bs - 1] = res
+        fmt.Println(string(ct))
+        copy(buf[:bs - 1], buf[1:])
+    }
+    return out
+}
+*/

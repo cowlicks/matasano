@@ -26,9 +26,14 @@ func TestOracle(t * testing.T) {
     }
 
     // test make dict
-    yo := MakeDict(16)
-    for k, v := range yo {
-        fmt.Println(k)
-        fmt.Println(v)
-    }
+    MakeDict(16)
+
+    MakeDictWithPad(16, make([]byte, 70))
+
+    lttr := OneShort()
+    fmt.Println(lttr)
+
+    MakeCTDict(16)
+
+    //All()
 }
