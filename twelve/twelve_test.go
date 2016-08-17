@@ -7,6 +7,7 @@ import (
 )
 
 func TestOracle(t * testing.T) {
+    fmt.Println("start test\n")
     // test encryptor
     key, _ := aesmodes.MakeKey()
     Encryptor([]byte("manifolds"), key)
@@ -25,15 +26,12 @@ func TestOracle(t * testing.T) {
         t.Fatal()
     }
 
-    // test make dict
-    MakeDict(16)
+    OneShort()
 
-    MakeDictWithPad(16, make([]byte, 70))
+    p := OneBlock()
+    fmt.Println(string(p))
 
-    lttr := OneShort()
-    fmt.Println(lttr)
+    q := WholeThing()
+    fmt.Println(string(q))
 
-    MakeCTDict(16)
-
-    //All()
 }

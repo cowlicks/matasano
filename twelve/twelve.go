@@ -1,7 +1,7 @@
 package twelve
 
 import (
-//    "fmt"
+    "fmt"
     "encoding/base64"
     "../aesmodes"
 )
@@ -42,19 +42,7 @@ func CheckEncryptorECB(kencryptor func([]byte) []byte) bool {
     return true
 }
 
-func MakeDict(bs int) map[string]byte {
-    out := make(map[string]byte)
-    for i := 0; i < 256; i++ {
-        b := byte(i)
-        block := make([]byte, bs)
-        block[bs - 1] = b
-        ct := KeyedEncryptor(block)
-        out[string(ct[:bs])] = b
-    }
-    return out
-}
-
-func MakeDictWithPad(bs int, pad []byte) map[string]byte {
+func MakePadDict(pad []byte) map[string]byte {
     out := make(map[string]byte)
     padlen := len(pad)
 
@@ -65,7 +53,7 @@ func MakeDictWithPad(bs int, pad []byte) map[string]byte {
         copy(block[:padlen], pad)
         block[padlen] = b
         ct := KeyedEncryptor(block)
-        out[string(ct[:bs])] = b
+        out[string(ct[:padlen + 1])] = b
     }
     return out
 }
@@ -73,7 +61,7 @@ func MakeDictWithPad(bs int, pad []byte) map[string]byte {
 func MakeCTDict(bs int) map[int][]byte {
     out := make(map[int][]byte)
 
-    for i := 0; i < bs - 1; i++ {
+    for i := 0; i < bs; i++ {
         out[i] = KeyedEncryptor(make([]byte, i))
     }
     return out
@@ -82,32 +70,66 @@ func MakeCTDict(bs int) map[int][]byte {
 
 func OneShort() byte {
     bs := FindBlockSize(KeyedEncryptor)
-    dict := MakeDict(bs)
+    ctdict := MakeCTDict(bs)
 
-    short := make([]byte, bs - 1)
-    ct := KeyedEncryptor(short)
-    return dict[string(ct[bs:])]
+    pad := make([]byte, bs - 1)
+    paddict := MakePadDict(pad)
+
+    res := paddict[string(ctdict[bs - 1])]
+
+    return res
 }
 
-/*
-func All() []byte {
+func OneBlock() []byte {
     bs := FindBlockSize(KeyedEncryptor)
-    ptlen := len(appendme)
-    initct := KeyedEncryptor(make([]byte, 0))
-    initctlen := len(initct)
+    padlen := bs - 1
+    ctdict := MakeCTDict(bs)
 
-    out := make([]byte, ptlen)
-    buf := make([]byte, bs)
+    pad := make([]byte, padlen)
+
+    for i := 0; i < bs - 1; i++ {
+        paddict := MakePadDict(pad)
+        copy(pad[:padlen - 1], pad[1:])
+        if val, ok := ctdict[bs - 1 - i]; ok {
+            if r, ok2 := paddict[string(val)[:bs]]; ok2 {
+                pad[padlen - 1] = r
+            } else {
+                panic("Error matiching ciphertext")
+            }
+        } else {
+            panic("block index error")
+        }
+    }
+    return pad
+}
+
+
+func WholeThing() []byte {
+    ptlen := len(appendme)
+    bs := FindBlockSize(KeyedEncryptor)
+    ctdict := MakeCTDict(bs)
+
+    pad := make([]byte, bs - 1)
 
     for i := 0; i < ptlen; i++ {
-        dict := MakeDictWithPad(bs, buf[:bs - 1])
-        ct := KeyedEncryptor(buf[:bs - 1])
-        res := dict[string(ct[:bs])]
-        out[i] = res
-        buf[bs - 1] = res
-        fmt.Println(string(ct))
-        copy(buf[:bs - 1], buf[1:])
+        bn := i / bs
+        if (i != 0) && (0 == i % (bs - 1)) {
+            fmt.Println("appending to pad")
+            pad = append(make([]byte, bs), pad...)
+        }
+        paddict := MakePadDict(pad)
+        fmt.Println(string(pad))
+        copy(pad[:len(pad) - 1], pad[1:])
+        if val, ok := ctdict[bs - 1 - (i % bs)]; ok {
+            tomatch := string(val)[:bs * (bn + 1)]
+            if r, ok2 := paddict[tomatch]; ok2 {
+                pad[len(pad) - 1] = r
+            } else {
+                panic("Error matiching ciphertext")
+            }
+        } else {
+            panic("block index error")
+        }
     }
-    return out
+    return pad
 }
-*/
