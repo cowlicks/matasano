@@ -42,7 +42,7 @@ func CheckEncryptorECB(kencryptor func([]byte) []byte) bool {
     return true
 }
 
-func MakePadDict(pad []byte) map[string]byte {
+func MakePadDict(bs int, pad []byte) map[string]byte {
     out := make(map[string]byte)
     padlen := len(pad)
 
@@ -53,7 +53,7 @@ func MakePadDict(pad []byte) map[string]byte {
         copy(block[:padlen], pad)
         block[padlen] = b
         ct := KeyedEncryptor(block)
-        out[string(ct[:padlen + 1])] = b
+        out[string(ct[padlen + 1 - bs : padlen + 1])] = b
     }
     return out
 }
@@ -73,7 +73,7 @@ func OneShort() byte {
     ctdict := MakeCTDict(bs)
 
     pad := make([]byte, bs - 1)
-    paddict := MakePadDict(pad)
+    paddict := MakePadDict(bs, pad)
 
     res := paddict[string(ctdict[bs - 1])]
 
@@ -88,7 +88,7 @@ func OneBlock() []byte {
     pad := make([]byte, padlen)
 
     for i := 0; i < bs - 1; i++ {
-        paddict := MakePadDict(pad)
+        paddict := MakePadDict(bs, pad)
         copy(pad[:padlen - 1], pad[1:])
         if val, ok := ctdict[bs - 1 - i]; ok {
             if r, ok2 := paddict[string(val)[:bs]]; ok2 {
@@ -117,11 +117,10 @@ func WholeThing() []byte {
             fmt.Println("appending to pad")
             pad = append(make([]byte, bs), pad...)
         }
-        paddict := MakePadDict(pad)
-        fmt.Println(string(pad))
+        paddict := MakePadDict(bs, pad)
         copy(pad[:len(pad) - 1], pad[1:])
         if val, ok := ctdict[bs - 1 - (i % bs)]; ok {
-            tomatch := string(val)[:bs * (bn + 1)]
+            tomatch := string(val)[bs*bn : bs * (bn + 1)]
             if r, ok2 := paddict[tomatch]; ok2 {
                 pad[len(pad) - 1] = r
             } else {

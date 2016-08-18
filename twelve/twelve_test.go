@@ -33,5 +33,4 @@ func TestOracle(t * testing.T) {
 
     q := WholeThing()
     fmt.Println(string(q))
-
 }
