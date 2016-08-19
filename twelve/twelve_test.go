@@ -6,7 +6,7 @@ import (
     "../aesmodes"
 )
 
-func TestOracle(t * testing.T) {
+func TestTwelve(t * testing.T) {
     fmt.Println("start test\n")
     // test encryptor
     key, _ := aesmodes.MakeKey()
