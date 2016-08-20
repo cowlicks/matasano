@@ -1,39 +1,45 @@
 package twelve
 
 import (
-    "fmt"
     "encoding/base64"
     "../aesmodes"
 )
 
 var key, _ = aesmodes.MakeKey()
-var appendme, decodeerr  = base64.StdEncoding.DecodeString("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
+var Target, decodeerr  = base64.StdEncoding.DecodeString("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
 
-func Encryptor(plaintext []byte, key []byte) []byte {
-    input := append(plaintext, appendme...)
+func Encryptor(plaintext []byte) []byte {
+    input := append(plaintext, Target...)
     out, _ := aesmodes.EncryptECB(key, input)
     return out
 }
 
-func KeyedEncryptor(plaintext []byte) []byte {
-    return Encryptor(plaintext, key)
-}
-
-func FindBlockSize(kencryptor func([]byte) []byte) int {
+func finder(encryptor func([]byte) []byte) (int, int) {
     bs := 0
-    for padlen := 0; bs == 0; padlen++ {
-        init := len(kencryptor(make([]byte, 0)))
+    padlen := 0
+    init := len(encryptor(make([]byte, 0)))
+    for ; bs == 0; padlen++ {
         longpad := make([]byte, padlen)
-        final := len(kencryptor(longpad))
+        final := len(encryptor(longpad))
         bs = final - init
     }
+    return bs, init - (padlen - 1)
+}
+
+func FindBlockSize(encryptor func([]byte) []byte) int {
+    bs, _ := finder(encryptor)
     return bs
 }
 
-func CheckEncryptorECB(kencryptor func([]byte) []byte) bool {
-    bs := FindBlockSize(kencryptor) // maybe make this an arg
+func FindTargetSize(encryptor func([]byte) []byte) int {
+    _, tlen := finder(encryptor)
+    return tlen
+}
+
+func CheckEncryptorECB(encryptor func([]byte) []byte) bool {
+    bs := FindBlockSize(encryptor) // maybe make this an arg
     block := make([]byte, bs)
-    ct := kencryptor(append(block, block...))
+    ct := encryptor(append(block, block...))
     for i := 0; i < bs; i++ {
         if ct[i] != ct[i + bs] {
             return false
@@ -52,7 +58,7 @@ func MakePadDict(bs int, pad []byte) map[string]byte {
         block := make([]byte, padlen + 1)
         copy(block[:padlen], pad)
         block[padlen] = b
-        ct := KeyedEncryptor(block)
+        ct := Encryptor(block)
         out[string(ct[padlen + 1 - bs : padlen + 1])] = b
     }
     return out
@@ -62,14 +68,14 @@ func MakeCTDict(bs int) map[int][]byte {
     out := make(map[int][]byte)
 
     for i := 0; i < bs; i++ {
-        out[i] = KeyedEncryptor(make([]byte, i))
+        out[i] = Encryptor(make([]byte, i))
     }
     return out
 }
 
 
 func OneShort() byte {
-    bs := FindBlockSize(KeyedEncryptor)
+    bs := FindBlockSize(Encryptor)
     ctdict := MakeCTDict(bs)
 
     pad := make([]byte, bs - 1)
@@ -81,7 +87,7 @@ func OneShort() byte {
 }
 
 func OneBlock() []byte {
-    bs := FindBlockSize(KeyedEncryptor)
+    bs := FindBlockSize(Encryptor)
     padlen := bs - 1
     ctdict := MakeCTDict(bs)
 
@@ -104,9 +110,9 @@ func OneBlock() []byte {
 }
 
 
-func WholeThing() []byte {
-    ptlen := len(appendme)
-    bs := FindBlockSize(KeyedEncryptor)
+func WholeThing(encryptor func([]byte) []byte) []byte {
+    ptlen := FindTargetSize(encryptor)
+    bs := FindBlockSize(encryptor)
     ctdict := MakeCTDict(bs)
 
     pad := make([]byte, bs - 1)
@@ -114,7 +120,6 @@ func WholeThing() []byte {
     for i := 0; i < ptlen; i++ {
         bn := i / bs
         if (i != 0) && (0 == i % (bs - 1)) {
-            fmt.Println("appending to pad")
             pad = append(make([]byte, bs), pad...)
         }
         paddict := MakePadDict(bs, pad)

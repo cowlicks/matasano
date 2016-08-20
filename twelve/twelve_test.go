@@ -3,26 +3,28 @@ package twelve
 import (
     "fmt"
     "testing"
-    "../aesmodes"
+    //"../aesmodes"
 )
 
 func TestTwelve(t * testing.T) {
     fmt.Println("start test\n")
-    // test encryptor
-    key, _ := aesmodes.MakeKey()
-    Encryptor([]byte("manifolds"), key)
 
-    // test keyedencryptor
-    KeyedEncryptor([]byte("socks"))
+    // test encryptor
+    Encryptor([]byte("socks"))
 
     // test get blocksize
-    bs := FindBlockSize(KeyedEncryptor)
+    bs := FindBlockSize(Encryptor)
     if bs != 16 {
         t.Fatal()
     }
 
     // test check ecb
-    if !CheckEncryptorECB(KeyedEncryptor) {
+    if !CheckEncryptorECB(Encryptor) {
+        t.Fatal()
+    }
+
+    tlen := FindTargetSize(Encryptor)
+    if tlen != len(Target) {
         t.Fatal()
     }
 
@@ -31,6 +33,6 @@ func TestTwelve(t * testing.T) {
     p := OneBlock()
     fmt.Println(string(p))
 
-    q := WholeThing()
+    q := WholeThing(Encryptor)
     fmt.Println(string(q))
 }
