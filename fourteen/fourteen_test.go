@@ -3,6 +3,7 @@ package fourteen
 import (
     "fmt"
     "testing"
+    "../twelve"
 )
 
 func TestFourteen(t * testing.T) {
@@ -25,4 +26,8 @@ func TestFourteen(t * testing.T) {
     if tlen != len(Target) {
         t.Fatal()
     }
+    EncryptorClipper(Encryptor, []byte("power"))
+
+    pt := twelve.WholeThing(ClippedEncryptor)
+    P(string(pt))
 }

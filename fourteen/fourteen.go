@@ -89,3 +89,16 @@ func FindTargetLen(encryptor func([]byte) []byte) int {
     tot := FindPrefixPlusTargetLen(encryptor)
     return tot - FindPrefixLen(encryptor)
 }
+
+func EncryptorClipper(encryptor func([]byte) []byte, pt []byte) []byte {
+    bs := FindBlockSize(encryptor)
+    pflen := FindPrefixLen(encryptor)
+    padlen := bs - (pflen % bs)
+    input := append(make([]byte, padlen), pt...)
+    ct := encryptor(input)
+    return ct[pflen + padlen:]
+}
+
+func ClippedEncryptor(pt []byte) []byte {
+    return EncryptorClipper(Encryptor, pt)
+}
