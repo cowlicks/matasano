@@ -19,6 +19,12 @@ func concat(b ...[]byte) []byte {
     return out
 }
 
+func RandBytes(maxlen int) []byte {
+    slice := make([]byte, mrand.Intn(maxlen))
+    crand.Read(slice)
+    return slice
+}
+
 func OracleEncryptor(data []byte) ([]byte, error) {
     var ct []byte
     prefix := make([]byte, mrand.Intn(6) + 5)
