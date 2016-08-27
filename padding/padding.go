@@ -5,6 +5,8 @@ import (
     "errors"
 )
 
+var InvalidPad = errors.New("Invalid Pad")
+
 func Pad(bs int, data []byte) ([]byte, error) {
     if !((0 < bs) &&(bs < 256)) {
         return nil, errors.New("Invalid blocksize, must be between 0 - 256")
@@ -33,14 +35,14 @@ func UnPad(bs int, data []byte) ([]byte, error) {
     datalen := len(data)
     padval := int(data[datalen - 1])
     if padval > datalen {
-        return errout, errors.New("Invalide pad")
+        return errout, InvalidPad
     }
     exp_pad := make([]byte, padval)
     for i := range exp_pad {
         exp_pad[i] = uint8(padval)
     }
     if !util.ByteEq(data[datalen - padval:], exp_pad) {
-        return errout, errors.New("Ivalid pad")
+        return errout, InvalidPad
     }
     unpadded := make([]byte, datalen - padval)
     copy(unpadded, data[:datalen - padval])

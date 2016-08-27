@@ -51,3 +51,24 @@ func TestPad(t * testing.T) {
         }
     }
 }
+func TestUnPad(t * testing.T) {
+    good := []byte("ICE ICE BABY\x04\x04\x04\x04")
+    bad1 := []byte("ICE ICE BABY\x05\x05\x05\x05")
+    bad2 := []byte("ICE ICE BABY\x01\x02\x03\x04")
+    bs := 16
+
+    _, err := UnPad(bs, good)
+    if err != nil {
+        t.Fatal()
+    }
+
+    _, err = UnPad(bs, bad1)
+    if err != InvalidPad {
+        t.Fatal()
+    }
+
+    _, err = UnPad(bs, bad2)
+    if err != InvalidPad {
+        t.Fatal()
+    }
+}
