@@ -1,11 +1,12 @@
-package twelve
+package sixteen
 
 import (
     "testing"
-    //"../aesmodes"
-    //"../xor"
 )
 
 func TestTwelve(t * testing.T) {
-    P(IsAdmin(MakeAdmin()))
+    out := IsAdmin(MakeAdmin())
+    if out != true {
+        t.Fatal()
+    }
 }
