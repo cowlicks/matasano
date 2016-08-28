@@ -7,6 +7,7 @@ import (
     "crypto/aes"
 )
 
+// Pads input with pkcs #7 to 16 byte blocksize. IV is first block of output.
 func EncryptCBC(key, plaintext []byte) ([]byte, error) {
     errout := []byte("")
     block, err := aes.NewCipher(key)
@@ -43,6 +44,7 @@ func EncryptCBC(key, plaintext []byte) ([]byte, error) {
     return ciphertext, nil
 }
 
+// Inverse of EncryptCBC.
 func DecryptCBC(key, ciphertext []byte) ([]byte, error) {
     errout := []byte("")
     block, err := aes.NewCipher(key)
