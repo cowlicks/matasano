@@ -59,15 +59,12 @@ func OneByte(bite int, blocknum int, solved []byte, blocks[][]byte) int {
     orig_block := make([]byte, bs)
     copy(orig_block, block)
 
-    P("block :", block)
     for i := bite + 1; i < bs; i++ {
         block[i] = block[i] ^ solved[i]
     }
-    P("block :", block)
     for i := bite; i < bs; i++ {
         block[i] = block[i] ^ byte(bs - bite)
     }
-    P("block :", block)
 
     before_guess := make([]byte, bs)
     copy(before_guess, block)
@@ -81,6 +78,7 @@ func OneByte(bite int, blocknum int, solved []byte, blocks[][]byte) int {
         copy(block, before_guess)
     }
     copy(block, orig_block)
+    panic("missed byte")
     return -1
 }
 
@@ -94,10 +92,6 @@ func OneBlock(blocknum int, blocks [][]byte) []byte {
 
     for bite := bs - 1; bite >= 0; bite-- {
         ptbyte := OneByte(bite, blocknum, out_block, blocks)
-        if ptbyte == -1 {
-            P(blocks)
-            panic("bad guess")
-        }
         out_block[bite] = byte(ptbyte)
     }
     return out_block
@@ -116,7 +110,7 @@ func LastBlock(blocks [][]byte) []byte {
     block[bs - 1] = block[bs - 1] ^ byte(1)
     pre_guess := make([]byte, bs)
     copy(pre_guess, block)
-    for guess := 0; guess < bs; guess++ {
+    for guess := 1; guess <= bs; guess++ {
         copy(block, pre_guess)
         if guess == 1 {
             continue
@@ -138,10 +132,6 @@ func LastBlock(blocks [][]byte) []byte {
     copy(block, orig_block)
     for bite := bs - result - 1; bite >= 0; bite-- {
         ptbyte := OneByte(bite, len(blocks) - 2, out, blocks)
-        if ptbyte == -1 {
-            P("last Block ", out)
-            panic("missed byte")
-        }
         out[bite] = byte(ptbyte)
 
     }
@@ -153,16 +143,20 @@ func PaddingOracleDecrypt(ct []byte) []byte {
     out := make([]byte, len(ct) - bs)
 
     for i := range blocks {
-        out_block := make([]byte, bs)
+        var out_block []byte
         if i == len(blocks) - 2 {
             out_block = LastBlock(blocks)
+            var err error
+            out_block, err = padding.UnPad(bs, out_block)
+            if err != nil {
+                panic("???")
+            }
         } else if i == len(blocks) - 1 {
             continue
         } else {
             out_block = OneBlock(i, blocks)
         }
-        P("out block: ", string(out_block))
-        copy(out[bs*i:bs*(i + 1)], out_block)
+        out = append(out, out_block...)
     }
     return out
 }
