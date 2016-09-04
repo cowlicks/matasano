@@ -39,7 +39,7 @@ func UnPad(bs int, data []byte) ([]byte, error) {
     }
     exp_pad := make([]byte, padval)
     if padval == 0 {
-        exp_pad = make([]byte, bs)
+        return errout, InvalidPad
     }
     for i := range exp_pad {
         exp_pad[i] = uint8(padval)
