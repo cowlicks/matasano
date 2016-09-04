@@ -1,7 +1,6 @@
 package sixteen
 
 import (
-    "encoding/base64"
     //"bytes"
     "fmt"
     "../padding"
@@ -10,15 +9,13 @@ import (
 
 var key, _ = aesmodes.MakeKey()
 
-var data, _ = base64.StdEncoding.DecodeString("MDAwMDAwTm93IHRoYXQgdGhlIHBhcnR5IGlzIGp1bXBpbmc=")
-
 var bs = 16
 
 func P(in ...interface{}) {
     fmt.Println(in)
 }
 
-func Encrypt() []byte {
+func Encrypt(data []byte) []byte {
     ct, _ := aesmodes.EncryptCBC(key, data)
     return ct
 }
@@ -57,6 +54,36 @@ func CombineBlocks(blocks [][]byte) []byte {
     return out
 }
 
+func OneByte(bite int, blocknum int, solved []byte, blocks[][]byte) int {
+    block := blocks[blocknum]
+    orig_block := make([]byte, bs)
+    copy(orig_block, block)
+
+    P("block :", block)
+    for i := bite + 1; i < bs; i++ {
+        block[i] = block[i] ^ solved[i]
+    }
+    P("block :", block)
+    for i := bite; i < bs; i++ {
+        block[i] = block[i] ^ byte(bs - bite)
+    }
+    P("block :", block)
+
+    before_guess := make([]byte, bs)
+    copy(before_guess, block)
+    for guess := 0; guess < 256; guess++ {
+        block[bite] = block[bite] ^ byte(guess)
+
+        if Oracle(CombineBlocks(blocks[:blocknum + 2])) {
+            copy(block, orig_block)
+            return guess
+        }
+        copy(block, before_guess)
+    }
+    copy(block, orig_block)
+    return -1
+}
+
 func OneBlock(blocknum int, blocks [][]byte) []byte {
     block := blocks[blocknum]
 
@@ -66,29 +93,12 @@ func OneBlock(blocknum int, blocks [][]byte) []byte {
     copy(orig_block, block)
 
     for bite := bs - 1; bite >= 0; bite-- {
-        // add already found bytes
-        for i := bite + 1; i < bs; i++ {
-            block[i] = block[i] ^ out_block[i]
+        ptbyte := OneByte(bite, blocknum, out_block, blocks)
+        if ptbyte == -1 {
+            P(blocks)
+            panic("bad guess")
         }
-        // add pad
-        pad := bs - bite
-        for i := bite; i < bs; i++ {
-            block[i] = block[i] ^ byte(pad)
-        }
-
-        before_guess := make([]byte, bs)
-        copy(before_guess, block)
-        for guess := 0; guess < 256; guess++ {
-
-            block[bite] = block[bite] ^ byte(guess)
-
-            if Oracle(CombineBlocks(blocks[:blocknum + 2])) {
-                out_block[bite] = byte(guess)
-                break
-            }
-            copy(block, before_guess)
-        }
-        copy(block, orig_block)
+        out_block[bite] = byte(ptbyte)
     }
     return out_block
 }
@@ -101,11 +111,13 @@ func LastBlock(blocks [][]byte) []byte {
     orig_block := make([]byte, bs)
     copy(orig_block, block)
 
-    pad := 1
-    result := pad
+    result := 1
 
-    block[bs - 1] = block[bs - 1] ^ byte(pad)
+    block[bs - 1] = block[bs - 1] ^ byte(1)
+    pre_guess := make([]byte, bs)
+    copy(pre_guess, block)
     for guess := 0; guess < bs; guess++ {
+        copy(block, pre_guess)
         if guess == 1 {
             continue
         }
@@ -117,52 +129,29 @@ func LastBlock(blocks [][]byte) []byte {
     }
 
     if result == 0 {
-        P("padd is zero")
         return out
     }
-
     for i := 0; i < result; i++ {
         out[bs - 1 - i] = byte(result)
     }
 
     copy(block, orig_block)
     for bite := bs - result - 1; bite >= 0; bite-- {
-        // add already found bytes
-        for i := bite + 1; i < bs; i++ {
-            block[i] = block[i] ^ out[i]
+        ptbyte := OneByte(bite, len(blocks) - 2, out, blocks)
+        if ptbyte == -1 {
+            P("last Block ", out)
+            panic("missed byte")
         }
-        // add pad
-        pad := bs - bite
-        P("pad", pad)
-        for i := bite; i < bs; i++ {
-            block[i] = block[i] ^ byte(pad)
-        }
+        out[bite] = byte(ptbyte)
 
-        before_guess := make([]byte, bs)
-        copy(before_guess, block)
-        for guess := 0; guess < 256; guess++ {
-
-            block[bite] = block[bite] ^ byte(guess)
-
-            if Oracle(CombineBlocks(blocks)) {
-                out[bite] = byte(guess)
-                P("guess", string(block[bite]))
-                break
-            }
-            copy(block, before_guess)
-        }
-        copy(block, orig_block)
     }
-    P(out)
     return out
 }
 
-func AllBlocks() {
-    ct := Encrypt()
+func PaddingOracleDecrypt(ct []byte) []byte {
     blocks := GetBlocks(ct)
-    out := make([]byte, len(ct))
+    out := make([]byte, len(ct) - bs)
 
-    Pb(blocks)
     for i := range blocks {
         out_block := make([]byte, bs)
         if i == len(blocks) - 2 {
@@ -172,6 +161,8 @@ func AllBlocks() {
         } else {
             out_block = OneBlock(i, blocks)
         }
+        P("out block: ", string(out_block))
         copy(out[bs*i:bs*(i + 1)], out_block)
     }
+    return out
 }
