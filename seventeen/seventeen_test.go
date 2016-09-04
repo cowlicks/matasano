@@ -7,10 +7,8 @@ import (
 func TestSeventeen(t * testing.T) {
     ct := Encrypt()
     blocks := GetBlocks(ct)
+    P(Oracle(CombineBlocks(blocks)))
     Pb(blocks)
-    OneByte()
-    //OneBlock(0)
-    //OneBlock(1)
     P("\n")
     //OneBlock(2)
     //OneBlock(3)
