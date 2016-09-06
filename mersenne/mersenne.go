@@ -1,13 +1,5 @@
 package mersenne
 
-import (
-    "fmt"
-)
-
-func P(yo ...interface{}) {
-    fmt.Println(yo)
-}
-
 type Mersenne struct {
     w, n, m, r, a, u, d, s, b, t, c, l, f uint
     index uint
