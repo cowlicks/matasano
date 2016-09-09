@@ -27,6 +27,6 @@ func ByteEq(a, b []byte) bool {
 	return true
 }
 
-func P(b interface{}) {
+func P(b ...interface{}) {
 	fmt.Println(b)
 }
