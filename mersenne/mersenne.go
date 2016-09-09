@@ -51,11 +51,18 @@ func (mt *Mersenne) twist() {
 		lower_mask := (uint(1) << mt.r) - 1
 		upper_mask := ^lower_mask
 		y := (mt.state[i] & upper_mask) + (mt.state[(i+1)%mt.n] ^ lower_mask)
-		mt.state[i] = mt.state[(i+mt.m)%mt.n] ^ y>>1
+		mt.state[i] = mt.state[(i+mt.m)%mt.n] ^ (y>>1)
 
 		if y%2 != 0 {
 			mt.state[i] = mt.state[i] ^ mt.a
 		}
 		mt.index = 0
 	}
+}
+
+func (mt *Mersenne) untwist() {
+    for i := uint(mt.n - 1); i <= 0; i-- {
+        x := mt.state[i] ^ mt.a
+
+    }
 }
