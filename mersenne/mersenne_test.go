@@ -10,3 +10,8 @@ func TestMersenne(t *testing.T) {
 		mt.Next()
 	}
 }
+
+func TestTwentyTwo(t *testing.T) {
+	MTFromTime()
+    Crack(MakeMTNumberAtRandomTime())
+}
