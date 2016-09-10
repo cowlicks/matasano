@@ -101,16 +101,12 @@ https://gist.github.com/oupo/ce045423a15395d31d3c
 func untemper(y uint) uint {
     y = y ^ (y >> 18)
     y = y ^ ((y << 15) & 0xEFC60000)
-    y = y ^ ((y << 7) & 0x1680)
-    y = y ^ ((y << 7) & 0xC4000)
-    y = y ^ ((y << 7) & 0xD200000)
-    y = y ^ ((y << 7) & 0x90000000)
-    y = y ^ ((y >> 11) & 0xFFC00000)
-    y = y ^ ((y >> 11) & 0x3FF800)
-    y = y ^ ((y >> 11) & 0x7FF)
+    y = y ^ ((y << 7) & 0x9D2C5680) ^ ((y << 14) & 0x94284000) ^ ((y << 21) & 0x14200000) ^ ((y << 28) & 0x10000000)
+    y = y ^ (y >> 11) ^ (y >> 22)
     return y
 }
 
+/* the above and below seem to be equivalent */
 func untemper2(y uint) uint {
     y = y ^ (y >> 18)
     y = y ^ ((y << 15) & 0xEFC60000)
@@ -134,7 +130,6 @@ func CloneMT19937(mt *Mersenne) *Mersenne {
     for i := uint(0); i < mt.n; i++ {
         mtout[i] = uint(mt.Next())
     }
-    util.P(mt.index)
     for i := uint(0); i < mt.n; i++ {
         state_copy[i] = untemper(mtout[i])
     }
