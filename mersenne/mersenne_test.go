@@ -1,8 +1,10 @@
 package mersenne
 
 import (
+    "time"
 	"testing"
     "math/rand"
+    "encoding/binary"
 )
 
 func TestMersenne(t *testing.T) {
@@ -78,5 +80,20 @@ func TestBruteForceCipher(t * testing.T) {
     }
     if !gotit {
         t.Fail()
+    }
+}
+
+func TestShittyPasswordResetToken(t *testing.T) {
+    now := uint64(time.Now().Unix())
+    key := make([]byte, 8)
+    binary.LittleEndian.PutUint64(key, now)
+
+    password := []byte("this is a password")
+    encrypted_pw := Encrypt(key, password)
+    password2 := Decrypt(key, encrypted_pw)
+    for i := range password {
+        if password[i] != password2[i] {
+            t.Fail()
+        }
     }
 }
