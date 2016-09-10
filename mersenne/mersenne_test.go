@@ -3,7 +3,6 @@ package mersenne
 import (
 	"testing"
     "math/rand"
-    u "../util"
 )
 
 func TestMersenne(t *testing.T) {
@@ -35,6 +34,7 @@ func TestShittyStreamCipher(t *testing.T) {
     pt := []byte("This is my plaintext")
     key := []byte("y0")
     ct := Encrypt(key, pt)
+
     decrypted := Decrypt(key, ct)
     for i:= range pt {
         if pt[i] != decrypted[i] {
@@ -44,13 +44,13 @@ func TestShittyStreamCipher(t *testing.T) {
 }
 
 
-func TestBruteForceCipher(* testing.T) {
-    prefix := make([]byte, rand.Intn(20))
+func TestBruteForceCipher(t * testing.T) {
+    prefix := make([]byte, rand.Intn(50))
     for i := range prefix {
         prefix[i] = byte(rand.Intn(256))
     }
     suffix := make([]byte, 14)
-    for i := range prefix {
+    for i := range suffix {
         suffix[i] = byte('A')
     }
     plaintext := append(prefix, suffix...)
@@ -58,13 +58,12 @@ func TestBruteForceCipher(* testing.T) {
 
     ciphertext := Encrypt(key, plaintext)
     testkey := make([]byte, 2)
+    gotit := false
     for i := 0; i < 256; i++ {
         testkey[1] = byte(i)
-        u.P(i)
         for j := 0; j < 256; j++ {
             testkey[0] = byte(j)
             maybe := Decrypt(testkey, ciphertext)
-            u.P(string(maybe))
             allgood := true
             for i := len(plaintext) - 1; len(plaintext) - 10 < i; i-- {
                 if maybe[i] != byte('A') {
@@ -73,8 +72,11 @@ func TestBruteForceCipher(* testing.T) {
                 }
             }
             if allgood {
-                u.P(testkey)
+                gotit = true
             }
         }
+    }
+    if !gotit {
+        t.Fail()
     }
 }
