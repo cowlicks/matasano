@@ -2,7 +2,7 @@ package mersenne
 
 import (
 	"testing"
-    //"../util"
+    u "../util"
 )
 
 /*
@@ -21,8 +21,15 @@ func TestTwentyTwo(t *testing.T) {
 
 func TestCloneMT(t *testing.T) {
     mt := NewMersenne19937(5489)
-    //mt.Next()
-//    copied_mt := CloneMT19937(mt)
-    CloneMT19937(mt)
- //   util.P(copied_mt.Next())
+    mt_data := make([]uint32, mt.n)
+    for i := uint32(0); i < mt.n; i++ {
+        mt_data[i] = mt.Next()
+    }
+    copied_mt := CloneMT19937(mt_data)
+    new_data := make([]uint32, copied_mt.n)
+    for i := uint32(0); i < copied_mt.n; i++ {
+        new_data[i] = copied_mt.Next()
+    }
+    u.P(mt_data[:5])
+    u.P(new_data[:5])
 }

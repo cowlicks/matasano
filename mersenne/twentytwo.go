@@ -8,7 +8,7 @@ import (
 
 func MTFromTime() *Mersenne {
     time := uint(time.Now().Unix())
-    return NewMersenne19937(time)
+    return NewMersenne19937(uint32(time))
 }
 
 func MakeMTNumberAtRandomTime() uint32 {
@@ -26,7 +26,7 @@ func Crack(input uint32) int {
     window_size := 601
     now := int(time.Now().Unix())
     for i := now - window_size; i < now; i++ {
-        mt := NewMersenne19937(uint(i))
+        mt := NewMersenne19937(uint32(i))
         out := mt.Next()
         if out == input {
             util.P(i)

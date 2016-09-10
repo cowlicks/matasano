@@ -1,25 +1,17 @@
 package mersenne
 
-import (
-    "strconv"
-    "fmt"
-    "../util"
-)
-
-func PrintBin(a uint) {
-    fmt.Println(strconv.FormatUint(uint64(a), 2))
-}
+var MIDDLEWORDSIZE int = 624
 
 type Mersenne struct {
-	w, n, m, r, a, u, d, s, b, t, c, l, f uint
-	index                                 uint
-	state                                 []uint
+	w, n, m, r, a, u, d, s, b, t, c, l, f uint32
+	index                                 uint32
+	state                                 []uint32
 }
 
 // parameters from
 // http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine
-func NewMersenne19937(seed uint) *Mersenne {
-	n := uint(624)
+func NewMersenne19937(seed uint32) *Mersenne {
+	n := uint32(624)
 	mt := Mersenne{
 		w:     32,              // word size
 		n:     n,               // degree of recurrence
@@ -35,11 +27,11 @@ func NewMersenne19937(seed uint) *Mersenne {
 		c:     0xEFC60000,      // __/
 		f:     1812433253,      // initialization constant
 		index: n,               // state holders
-		state: make([]uint, n), // ''
+		state: make([]uint32, n), // ''
 	}
 
 	mt.state[0] = seed
-	for i := uint(1); i < n; i++ {
+	for i := uint32(1); i < n; i++ {
 		mt.state[i] = mt.f*(mt.state[i-1]^(mt.state[i-1]>>(mt.w-2))) + i
 	}
 	return &mt
@@ -53,10 +45,10 @@ func (mt *Mersenne) Next() uint32 {
 	y := mt.state[mt.index]
     y = mt.temper(y)
 	mt.index++
-	return uint32(y & (uint(^uint32(0))))
+	return y
 }
 
-func (mt *Mersenne) temper(y uint) uint {
+func (mt *Mersenne) temper(y uint32) uint32 {
     y = y ^ ((y >> mt.u) & mt.d)
     y = y ^ ((y << mt.s) & mt.b)
     y = y ^ ((y << mt.t) & mt.c)
@@ -65,8 +57,8 @@ func (mt *Mersenne) temper(y uint) uint {
 }
 
 func (mt *Mersenne) twist() {
-	for i := uint(0); i < mt.n; i++ {
-		lower_mask := (uint(1) << mt.r) - 1
+	for i := uint32(0); i < mt.n; i++ {
+		lower_mask := (uint32(1) << mt.r) - 1
 		upper_mask := ^lower_mask
 		y := (mt.state[i] & upper_mask) + (mt.state[(i+1)%mt.n] ^ lower_mask)
 		mt.state[i] = mt.state[(i+mt.m)%mt.n] ^ (y>>1)
@@ -75,7 +67,6 @@ func (mt *Mersenne) twist() {
 			mt.state[i] = mt.state[i] ^ mt.a
 		}
 	}
-    util.P(mt.state[:5])
     mt.index = 0
 }
 
@@ -98,7 +89,7 @@ The matrices themselves and another untempering formula can be found here:
 
 https://gist.github.com/oupo/ce045423a15395d31d3c 
 */
-func untemper(y uint) uint {
+func untemper(y uint32) uint32 {
     y = y ^ (y >> 18)
     y = y ^ ((y << 15) & 0xEFC60000)
     y = y ^ ((y << 7) & 0x9D2C5680) ^ ((y << 14) & 0x94284000) ^ ((y << 21) & 0x14200000) ^ ((y << 28) & 0x10000000)
@@ -107,7 +98,7 @@ func untemper(y uint) uint {
 }
 
 /* the above and below seem to be equivalent */
-func untemper2(y uint) uint {
+func untemper2(y uint32) uint32 {
     y = y ^ (y >> 18)
     y = y ^ ((y << 15) & 0xEFC60000)
     y = y ^ ((y << 7) & 0x1680)
@@ -120,22 +111,16 @@ func untemper2(y uint) uint {
     return y
 }
 
-func CloneMT19937(mt *Mersenne) *Mersenne {
-    mtout := make([]uint, mt.n)
-    state_copy := make([]uint, mt.n)
+func CloneMT19937(mt_data []uint32) *Mersenne {
+    n := uint32(MIDDLEWORDSIZE)
+    state_copy := make([]uint32, n)
 
-    for ;mt.index != 624; {
-        mt.Next()
-    }
-    for i := uint(0); i < mt.n; i++ {
-        mtout[i] = uint(mt.Next())
-    }
-    for i := uint(0); i < mt.n; i++ {
-        state_copy[i] = untemper(mtout[i])
+    for i := uint32(0); i < n; i++ {
+        state_copy[i] = untemper(mt_data[i])
     }
 	copied_mt := Mersenne{
 		w:     32,              // word size
-		n:     mt.n,               // degree of recurrence
+		n:     n,               // degree of recurrence
 		m:     397,             // middle word
 		r:     31,              // seperation point of one word
 		a:     0x9908B0DF,      // coefficients of twist matrix (wtf wikipedia)
@@ -148,10 +133,9 @@ func CloneMT19937(mt *Mersenne) *Mersenne {
 		c:     0xEFC60000,      // __/
 		f:     1812433253,      // initialization constant
 		index: 0,               // state holders
-		state: make([]uint, mt.n), // ''
+		state: make([]uint32, n), // ''
 	}
     copy(copied_mt.state, state_copy)
-    util.P(copied_mt.state[:5])
     copied_mt.index = 0
     return &copied_mt
 }
