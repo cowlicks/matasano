@@ -2,22 +2,14 @@ package mersenne
 
 import (
 	"testing"
-    u "../util"
 )
 
-/*
 func TestMersenne(t *testing.T) {
 	mt := NewMersenne19937(5489)
 	for i := 0; i < 3; i++ {
-		util.P(mt.Next())
+		mt.Next()
 	}
 }
-
-func TestTwentyTwo(t *testing.T) {
-	MTFromTime()
-//    Crack(MakeMTNumberAtRandomTime())
-}
-*/
 
 func TestCloneMT(t *testing.T) {
     mt := NewMersenne19937(5489)
@@ -30,6 +22,9 @@ func TestCloneMT(t *testing.T) {
     for i := uint32(0); i < copied_mt.n; i++ {
         new_data[i] = copied_mt.Next()
     }
-    u.P(mt_data[:5])
-    u.P(new_data[:5])
+    for i := uint32(0); i < mt.n; i++ {
+        if new_data[i] != mt_data[i] {
+            t.Fail()
+        }
+    }
 }
