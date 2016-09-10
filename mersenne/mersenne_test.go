@@ -28,3 +28,15 @@ func TestCloneMT(t *testing.T) {
         }
     }
 }
+
+func TestShittyStreamCipher(t *testing.T) {
+    pt := []byte("This is my plaintext")
+    key := []byte("y0")
+    ct := Encrypt(key, pt)
+    decrypted := Decrypt(key, ct)
+    for i:= range pt {
+        if pt[i] != decrypted[i] {
+            t.Fail()
+        }
+    }
+}
