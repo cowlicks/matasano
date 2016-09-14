@@ -97,3 +97,14 @@ func TestShittyPasswordResetToken(t *testing.T) {
         }
     }
 }
+
+func TestEdit(t *testing.T) {
+    key := []byte("password")
+    plaintext := []byte("I got an F in crypto class.")
+    ciphertext := Encrypt(key, plaintext)
+    edited := Edit(key, ciphertext, byte('A'), 9)
+    out := Decrypt(key, edited)
+    if string(out[9]) != "A" {
+        t.Fail()
+    }
+}
