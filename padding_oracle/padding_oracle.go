@@ -1,8 +1,9 @@
-package sixteen
+package padding_oracle
 
 import (
 	"../aesmodes"
 	"../padding"
+	"../util"
 )
 
 var key, _ = aesmodes.MakeKey()
@@ -16,7 +17,7 @@ func Encrypt(data []byte) []byte {
 
 func Pb(in [][]byte) {
 	for i := range in {
-		P(in[i])
+		util.P(in[i])
 	}
 }
 

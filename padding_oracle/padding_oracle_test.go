@@ -1,8 +1,9 @@
-package sixteen
+package padding_oracle
 
 import (
 	"encoding/base64"
 	"testing"
+	"../util"
 )
 
 var encoded_data = []string{
@@ -30,6 +31,6 @@ func TestSeventeen(t *testing.T) {
 	for i := range data {
 		ct := Encrypt(data[i])
 		out := PaddingOracleDecrypt(ct)
-		P("gotem :", string(out))
+		util.P("gotem :", string(out))
 	}
 }
