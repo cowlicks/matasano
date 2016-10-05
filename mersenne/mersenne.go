@@ -13,20 +13,20 @@ type Mersenne struct {
 func NewMersenne19937(seed uint32) *Mersenne {
 	n := uint32(624)
 	mt := Mersenne{
-		w:     32,              // word size
-		n:     n,               // degree of recurrence
-		m:     397,             // middle word
-		r:     31,              // seperation point of one word
-		a:     0x9908B0DF,      // coefficients of twist matrix (wtf wikipedia)
-        u:     11,              // -- 
-        s:     7,               //   \__ bit shifts
-        t:     15,              //   /
-		l:     18,              // --
-		d:     0xFFFFFFFF,      // --
-		b:     0x9D2C5680,      //   \__ bit masks
-		c:     0xEFC60000,      // __/
-		f:     1812433253,      // initialization constant
-		index: n,               // state holders
+		w:     32,                // word size
+		n:     n,                 // degree of recurrence
+		m:     397,               // middle word
+		r:     31,                // seperation point of one word
+		a:     0x9908B0DF,        // coefficients of twist matrix (wtf wikipedia)
+		u:     11,                // --
+		s:     7,                 //   \__ bit shifts
+		t:     15,                //   /
+		l:     18,                // --
+		d:     0xFFFFFFFF,        // --
+		b:     0x9D2C5680,        //   \__ bit masks
+		c:     0xEFC60000,        // __/
+		f:     1812433253,        // initialization constant
+		index: n,                 // state holders
 		state: make([]uint32, n), // ''
 	}
 
@@ -43,17 +43,17 @@ func (mt *Mersenne) Next() uint32 {
 	}
 
 	y := mt.state[mt.index]
-    y = mt.temper(y)
+	y = mt.temper(y)
 	mt.index++
 	return y
 }
 
 func (mt *Mersenne) temper(y uint32) uint32 {
-    y = y ^ ((y >> mt.u) & mt.d)
-    y = y ^ ((y << mt.s) & mt.b)
-    y = y ^ ((y << mt.t) & mt.c)
-    y = y ^ (y >> mt.l)
-    return y
+	y = y ^ ((y >> mt.u) & mt.d)
+	y = y ^ ((y << mt.s) & mt.b)
+	y = y ^ ((y << mt.t) & mt.c)
+	y = y ^ (y >> mt.l)
+	return y
 }
 
 func (mt *Mersenne) twist() {
@@ -61,11 +61,11 @@ func (mt *Mersenne) twist() {
 		lower_mask := (uint32(1) << mt.r) - 1
 		upper_mask := ^lower_mask
 		y := (mt.state[i] & upper_mask) + (mt.state[(i+1)%mt.n] ^ lower_mask)
-		mt.state[i] = mt.state[(i+mt.m)%mt.n] ^ (y>>1)
+		mt.state[i] = mt.state[(i+mt.m)%mt.n] ^ (y >> 1)
 
 		if y%2 != 0 {
 			mt.state[i] = mt.state[i] ^ mt.a
 		}
 	}
-    mt.index = 0
+	mt.index = 0
 }
