@@ -1,11 +1,11 @@
 package aesmodes
 
 import (
-    "testing"
+	"testing"
 )
 
-func TestOracle(t * testing.T) {
-    MakeKey()
-    c, _ := OracleEncryptor(make([]byte, 300))
-    OracleDetector(c)
+func TestOracle(t *testing.T) {
+	MakeKey()
+	c, _ := OracleEncryptor(make([]byte, 300))
+	OracleDetector(c)
 }
