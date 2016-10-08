@@ -10,7 +10,10 @@ import (
 func TestCBC(t *testing.T) {
 	key := []byte("YELLOW SUBMARINE")
 
-	file_bytes, _ := ioutil.ReadFile("../data/data7.txt")
+	file_bytes, err := ioutil.ReadFile("../data/data7.txt")
+	if err != nil {
+		panic(err)
+	}
 
 	decodelen := base64.StdEncoding.DecodedLen(len(file_bytes))
 	ciphertext := make([]byte, decodelen)
@@ -37,4 +40,13 @@ func TestCBC(t *testing.T) {
 	if !util.ByteEq(new_plaintext, plaintext) {
 		t.Fatal()
 	}
+
+	with_iv_ct, err := EncryptCBCWithIV(key, key, plaintext)
+	if err != nil {
+		t.Fatal()
+	}
+	if !util.ByteEq(key, with_iv_ct[:len(key)]) {
+		t.Fatal()
+	}
+
 }

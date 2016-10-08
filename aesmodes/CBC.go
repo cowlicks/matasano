@@ -4,23 +4,19 @@ import (
 	"../padding"
 	"../xor"
 	"crypto/aes"
+	"crypto/cipher"
 	"errors"
 )
 
-// Pads input with pkcs #7 to 16 byte blocksize. IV is first block of output.
-func EncryptCBC(key, plaintext []byte) ([]byte, error) {
-	errout := []byte("")
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return errout, err
-	}
+var errout = []byte("")
+
+func encryptWithBlockAndIV(block cipher.Block, iv, plaintext []byte) ([]byte, error) {
 	bs := block.BlockSize()
-	plaintext, err = padding.Pad(bs, plaintext)
+	plaintext, err := padding.Pad(bs, plaintext)
 	if err != nil {
 		return errout, err
 	}
 
-	iv := make([]byte, bs)
 	ciphertext := make([]byte, bs+len(plaintext))
 	copy(ciphertext[:bs], iv)
 
@@ -42,6 +38,24 @@ func EncryptCBC(key, plaintext []byte) ([]byte, error) {
 		}
 	}
 	return ciphertext, nil
+}
+
+func EncryptCBCWithIV(key, iv, plaintext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return errout, err
+	}
+	return encryptWithBlockAndIV(block, iv, plaintext)
+}
+
+// Pads input with pkcs #7 to 16 byte blocksize. IV is first block of output.
+func EncryptCBC(key, plaintext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	iv := make([]byte, block.BlockSize())
+	if err != nil {
+		return errout, err
+	}
+	return encryptWithBlockAndIV(block, iv, plaintext)
 }
 
 // Inverse of EncryptCBC.
