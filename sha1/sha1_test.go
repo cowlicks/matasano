@@ -1,6 +1,7 @@
 package sha1
 
 import (
+	"crypto/sha1"
 	"encoding/hex"
 	"testing"
 )
@@ -11,4 +12,12 @@ func Test(t *testing.T) {
 	if !(hex.EncodeToString(o) == expected) {
 		t.Fail()
 	}
+
+	a := sha1.Sum([]byte("butts"))
+	for i := 0; i < len(a); i++ {
+		if a[i] != o[i] {
+			t.Fail()
+		}
+	}
+
 }
