@@ -3,6 +3,7 @@ package dh
 import (
 	"../aesmodes"
 	"testing"
+//	"math/big"
 )
 
 func Test(t *testing.T) {
@@ -39,7 +40,7 @@ func TestMITM(t *testing.T) {
 	resa, err := aesmodes.DecryptCBC(secreta, cta)
 	resb, err := aesmodes.DecryptCBC(secretb, ctb)
 	if err != nil {
-		panic(err)
+		t.Fail()
 	}
 
 	for i, _ := range resa {
@@ -47,9 +48,23 @@ func TestMITM(t *testing.T) {
 			t.Fail()
 		}
 	}
+
 	for i, _ := range resb {
 		if resb[i] != msgb[i] {
 			t.Fail()
 		}
 	}
+}
+
+
+func TestSRP(t *testing.T) {
+	client, server := NewSession([]byte("waddup"))
+	server.Receive(client.Send())
+	client.Receive(server.Send())
+
+	client.GetU()
+	server.GetU()
+
+	client.GetK()
+	server.GetK()
 }
