@@ -4,6 +4,28 @@ import (
 	"math/big"
 )
 
+func pow(base, exp *big.Int) *big.Int {
+	return new(big.Int).Exp(base, exp, PNist)
+}
+
+func mul(a, b *big.Int) *big.Int {
+	return new(big.Int).Mod(new(big.Int).Mul(a, b), PNist)
+}
+
+func add(a, b *big.Int) *big.Int {
+	return new(big.Int).Mod(new(big.Int).Add(a, b), PNist)
+}
+
+func sub(a, b *big.Int) *big.Int {
+	isneg := new(big.Int).Sub(a, b)
+	return new(big.Int).Mod(isneg, PNist)
+}
+
+func fromBytes(b []byte) *big.Int {
+	x := new(big.Int).SetBytes(b)
+	return new(big.Int).Mod(x, PNist)
+}
+
 type both struct {
 	salt *big.Int
 	x *big.Int
@@ -11,8 +33,7 @@ type both struct {
 	g *big.Int
 	k *big.Int
 	u *big.Int
-	a *big.Int
-	b *big.Int
+
 	A *big.Int
 	B *big.Int
 	S *big.Int
@@ -28,24 +49,29 @@ type Server struct {
 
 type Client struct {
 	*both
+	a *big.Int
 }
 
 
 func NewSession(password []byte) (*Client, *Server) {
-	bc := &both{salt: Rand(PNist), N: PNist, g: big.NewInt(2), k: big.NewInt(3), password: password}
-	return &Client{both: bc}, NewServer(bc)
+	bclient := &both{salt: Rand(PNist), N: PNist, g: big.NewInt(2), k: big.NewInt(3), password: password}
+	bserver := &both{}
+	*bserver = *bclient
+	return &Client{both: bclient}, NewServer(bserver)
 }
 
+// make v = g**x
 func NewServer(both *both) *Server {
 	xH := HashBytes(append(both.salt.Bytes(), both.password...))
-	x := new(big.Int).SetBytes(xH)
-	v := Pow(both.g, x, both.N)
+	x := fromBytes(xH)
+	v := pow(both.g, x)
 	return &Server{both: both, v: v}
 }
 
+// make & send A = g**a
 func (c *Client) Send() *big.Int {
 	c.a = Rand(c.N)
-	c.A = Pow(c.g, c.a, c.N)
+	c.A = pow(c.g, c.a)
 	return c.A
 }
 
@@ -53,77 +79,33 @@ func (s *Server) Receive(A *big.Int) {
 	s.A = A
 }
 
-func (s *Server) Send() (*big.Int, *big.Int) {
+// make & send B = g**b
+func (s *Server) Send() *big.Int {
 	s.b = Rand(s.N)
-	s.B = Add(Mul(s.k, s.v, s.N), Pow(s.g, s.b, s.N), s.N)
-	return s.salt, s.B
+	s.B = add(mul(s.k, s.v), pow(s.g, s.b))
+	P(s.v)
+	return s.B
 }
 
-func (c *Client) Receive(salt, B *big.Int) {
-	c.salt = salt
+func (c *Client) Receive(B *big.Int) {
 	c.B = B
 }
 
 func (b *both) GetU() {
 	uH := HashBytes(append(b.A.Bytes(), b.B.Bytes()...))
-	b.u = new(big.Int).SetBytes(uH)
+	b.u = fromBytes(uH)
 }
 
 func (c *Client) GetK() {
 	xH := HashBytes(append(c.salt.Bytes(), c.password...))
-	c.x = new(big.Int).SetBytes(xH)
-	base := Sub(c.B, Mul(c.k, Pow(c.g, c.x, c.N), c.N), c.N)
-	exp := Add(c.a, Mul(c.u, c.x, c.N), c.N)
-	c.S = Pow(base, exp, c.N)
+	c.x = fromBytes(xH)
+	base := sub(c.B, mul(c.k, pow(c.g, c.x)))
+	exp := add(c.a, mul(c.u, c.x))
+	c.S = pow(base, exp)
 	c.K = HashBytes(c.S.Bytes())
-	P(c.S)
 }
 
 func (s *Server) GetK() {
-	s.S = Pow(Mul(s.A, Pow(s.v, s.u, s.N), s.N), s.b, s.N)
+	s.S = pow(mul(s.A, pow(s.v, s.u)), s.b)
 	s.K = HashBytes(s.S.Bytes())
-	P(s.S)
 }
-
-/*
-func Test36(t *testing.T) {
-	// C & S
-	k := big.NewInt(3)
-	password := []byte("password")
-	salt := Rand(p)
-	// S
-	xHserver := HashBytes(append(salt.Bytes(), password...))
-	xserver := new(big.Int).SetBytes(xHserver)
-	v := Pow(g, xserver, p)
-
-	// C -> S
-	a := Rand(p)
-	A := Pow(g, a, p)
-
-	// S -> C
-	b := Rand(p)
-	B := Add(Mul(k, v, p), Pow(g, b, p), p)
-
-	// S, C
-	uH := HashBytes(append(A.Bytes(), B.Bytes()...))
-	u := new(big.Int).SetBytes(uH)
-
-	// C
-	// gets xH and convert to big.Int x
-	xHclient := HashBytes(append(salt.Bytes(), password...))
-	xclient := new(big.Int).SetBytes(xHclient)
-	Sclient := Pow(Sub(B, Mul(k, Pow(g, xclient, p), p), p), Add(a, Mul(u, xclient, p), p), p)
-	Kclient := Hash(Sclient)
-
-	// S
-	Sserver := Pow(Mul(A, Pow(v, u, p), p), b, p)
-	Kserver := Hash(Sserver)
-
-	// C -> S
-	for i, _ := range Kclient {
-		if Kclient[i] != Kserver[i] {
-			t.Fail()
-		}
-	}
-}
-*/

@@ -67,4 +67,7 @@ func TestSRP(t *testing.T) {
 
 	client.GetK()
 	server.GetK()
+	if client.S.Cmp(server.S) != 0 {
+		t.Fail()
+	}
 }
