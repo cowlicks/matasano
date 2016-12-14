@@ -3,7 +3,7 @@ package dh
 import (
 	"../aesmodes"
 	"testing"
-//	"math/big"
+	//	"math/big"
 )
 
 func Test(t *testing.T) {
@@ -56,17 +56,13 @@ func TestMITM(t *testing.T) {
 	}
 }
 
-
 func TestSRP(t *testing.T) {
 	client, server := NewSession([]byte("waddup"))
-	server.Receive(client.Send())
 	client.Receive(server.Send())
+	server.Receive(client.Send())
 
-	client.GetU()
-	server.GetU()
-
-	client.GetK()
 	server.GetK()
+	client.GetK()
 	if client.S.Cmp(server.S) != 0 {
 		t.Fail()
 	}
