@@ -13,15 +13,15 @@ func pow(base, exp *big.Int) *big.Int {
 }
 
 func mul(a, b *big.Int) *big.Int {
-	return mod(new(big.Int).Mul(a, b))
+	return new(big.Int).Mul(a, b)
 }
 
 func add(a, b *big.Int) *big.Int {
-	return mod(new(big.Int).Add(a, b))
+	return new(big.Int).Add(a, b)
 }
 
 func sub(a, b *big.Int) *big.Int {
-	return mod(new(big.Int).Sub(a, b))
+	return new(big.Int).Sub(a, b)
 }
 
 func fromBytes(b []byte) *big.Int {
@@ -58,10 +58,9 @@ func NewSession(password []byte) (*Client, *Server) {
 	bclient := &both{salt: Rand(PNist), N: PNist, g: big.NewInt(2), k: big.NewInt(3), password: password}
 	xH := HashBytes(append(bclient.salt.Bytes(), bclient.password...))
 	bclient.x = fromBytes(xH)
-	//bserver := &both{}
-	//*bserver = *bclient
-	//return &Client{both: bclient}, NewServer(bserver)
-	return &Client{both: bclient}, NewServer(bclient)
+	bserver := &both{}
+	*bserver = *bclient
+	return &Client{both: bclient}, NewServer(bserver)
 }
 
 // make v = g**x
